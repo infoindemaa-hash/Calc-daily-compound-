@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f5ff">
+<meta name="description" content="Compound Lab — daily compound interest calculator and growth projection.">
+<title>Compound Lab V2 · Daily Compounding Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --ink:#211d35;--muted:#858ba2;--purple:#7654e8;--purple2:#9b7bff;
+  --cyan:#16a6c5;--line:rgba(113,104,160,.13);--white:rgba(255,255,255,.78);
+  --shadow:0 18px 55px rgba(63,53,119,.10),inset 0 1px 0 rgba(255,255,255,.95);
+}
+*{box-sizing:border-box}
+html{min-height:100%;background:#f4f5ff}
+body{margin:0;min-height:100vh;font-family:"DM Sans",system-ui,sans-serif;color:var(--ink);background:linear-gradient(145deg,#f8f7ff 0%,#eff7ff 48%,#fff5fb 100%);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit}
+button,select{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid rgba(118,84,232,.25);outline-offset:2px}
+button{-webkit-tap-highlight-color:transparent}
+.bg-orb{position:fixed;z-index:0;pointer-events:none;border-radius:50%;filter:blur(75px);opacity:.48}
+.orb1{width:420px;height:420px;left:-190px;top:-160px;background:#c9b9ff}
+.orb2{width:430px;height:430px;right:-220px;top:180px;background:#a7e8f5}
+.orb3{width:360px;height:360px;left:35%;bottom:-240px;background:#f7c7e7}
+.app{position:relative;z-index:1;width:min(100% - 28px,760px);margin:0 auto;padding:18px 0 38px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;border:1px solid rgba(255,255,255,.9);border-radius:22px;background:rgba(255,255,255,.65);backdrop-filter:blur(22px);box-shadow:var(--shadow)}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand-mark{width:42px;height:42px;display:grid;place-items:center;flex:none;border-radius:14px;color:white;background:linear-gradient(140deg,#18b5ce,#7654e8);box-shadow:0 8px 18px rgba(118,84,232,.25)}
+.brand-name{font:800 16px "Manrope",sans-serif;letter-spacing:-.5px}
+.brand-name span{color:#9b91b7}
+.brand-sub{font-size:10px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+.currency{border:1px solid var(--line);background:rgba(255,255,255,.8);border-radius:12px;padding:9px 28px 9px 11px;color:#5e6076;font-size:12px;font-weight:700}
+.select-wrap{position:relative}
+.select-wrap:after{content:"";position:absolute;right:11px;top:13px;width:7px;height:7px;border-right:1.5px solid #888da2;border-bottom:1.5px solid #888da2;transform:rotate(45deg);pointer-events:none}
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:15px}
+.panel{border:1px solid rgba(255,255,255,.92);border-radius:25px;background:rgba(255,255,255,.66);backdrop-filter:blur(22px);box-shadow:var(--shadow)}
+.setup{padding:20px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:17px}
+h2,h3,p{margin:0}
+.section-title{font:800 14px "Manrope",sans-serif;letter-spacing:-.2px;color:#46415e}
+.eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:#9296aa}
+.reset{border:0;background:rgba(118,84,232,.08);color:#7654e8;border-radius:10px;padding:8px 11px;font-size:11px;font-weight:700}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.field-group{min-width:0}
+.field-group.full{grid-column:1/-1}
+.field-label{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#9296aa}
+.hint{font-size:10px;font-weight:700;letter-spacing:0;text-transform:none;color:#6f69a0;white-space:nowrap}
+.input-wrap{position:relative}
+.input-wrap .prefix{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:#9296aa;pointer-events:none}
+.input-wrap .suffix{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:11px;color:#9296aa;pointer-events:none}
+.field{width:100%;min-width:0;border:1px solid rgba(112,105,153,.16);border-radius:14px;background:rgba(255,255,255,.82);padding:13px 14px;color:#28243e;font-size:15px;font-weight:700;outline:none;transition:border-color .2s,box-shadow .2s}
+.field.with-prefix{padding-left:35px}
+.field.with-suffix{padding-right:74px}
+.field:focus{border-color:rgba(118,84,232,.55);box-shadow:0 0 0 4px rgba(118,84,232,.10);background:white}
+.segment{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:rgba(117,105,166,.08)}
+.segment button{position:relative;z-index:1;border:0;border-radius:11px;background:transparent;padding:10px 8px;color:#85849b;font-size:12px;font-weight:700}
+.segment button.active{background:white;color:#6e50d8;box-shadow:0 4px 13px rgba(60,50,110,.10)}
+.note{grid-column:1/-1;padding:11px 13px;border:1px solid rgba(255,255,255,.9);border-radius:13px;background:rgba(255,255,255,.42);font-size:10.5px;line-height:1.55;color:#858ba2}
+.hidden{display:none!important}
+.result{position:relative;overflow:hidden;padding:22px 22px 20px;background:linear-gradient(135deg,rgba(255,255,255,.84),rgba(249,247,255,.72))}
+.result:before,.result:after{content:"";position:absolute;border-radius:50%;filter:blur(35px);pointer-events:none}
+.result:before{width:180px;height:180px;right:-50px;top:-80px;background:rgba(170,143,255,.30)}
+.result:after{width:150px;height:150px;left:-55px;bottom:-90px;background:rgba(87,213,231,.24)}
+.result-content{position:relative;z-index:1}
+.result-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.result-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.17em;color:#9296aa}
+.growth-badge{border-radius:99px;padding:6px 10px;background:#e9f9f2;border:1px solid #ccefe0;color:#16875c;font-size:10px;font-weight:800;white-space:nowrap}
+.hero-value{margin-top:8px;font:800 clamp(30px,7vw,48px)/1.12 "Manrope",sans-serif;letter-spacing:-1.7px;overflow-wrap:anywhere;background:linear-gradient(110deg,#542bb2,#8a5ce9 48%,#089db6);-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+.hero-sub{margin-top:9px;color:#9296aa;font-size:11px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{min-width:0;padding:14px 13px;border-radius:19px;border:1px solid rgba(255,255,255,.88);background:rgba(255,255,255,.55);box-shadow:0 10px 25px rgba(63,53,119,.055)}
+.stat-label{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9699ad}
+.stat-value{margin-top:7px;font:800 clamp(12px,2.7vw,17px) "Manrope",sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.stat:nth-child(2) .stat-value{color:#7654e8}.stat:nth-child(3) .stat-value{color:#1099b7}
+.chart-panel,.compare-panel{padding:18px 19px}
+.panel-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.legend{display:flex;align-items:center;gap:6px;color:#9296aa;font-size:10px}
+.legend i{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#13b2c9,#8959ed)}
+.chart-wrap{height:160px;position:relative}
+#chart{width:100%;height:100%;overflow:visible}
+.chart-labels{display:flex;justify-content:space-between;color:#a0a3b5;font-size:9px;margin-top:5px}
+.compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.compare-card{border:1px solid rgba(255,255,255,.9);border-radius:16px;background:rgba(255,255,255,.52);padding:13px;text-align:left;min-width:0}
+.compare-card.active{border-color:rgba(118,84,232,.42);background:#fff;box-shadow:0 8px 22px rgba(118,84,232,.10)}
+.compare-name{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9699ad}
+.compare-value{margin-top:6px;font:800 16px "Manrope",sans-serif;color:#39344f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.compare-detail{margin-top:4px;color:#9a9caf;font-size:9px;line-height:1.4}
+.compare-card:last-child{grid-column:1/-1}
+.assumption{margin-top:11px;color:#9296aa;font-size:10px;line-height:1.55}
+.footer{text-align:center;color:#a0a3b5;font-size:10px;padding:2px 0 8px}
+.error{display:none;margin-top:12px;padding:10px 12px;border-radius:12px;background:#fff0f0;color:#b43b50;font-size:11px;line-height:1.45}
+.error.show{display:block}
+@media(min-width:700px){
+ .app{padding-top:26px}
+ .layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+ .setup{grid-column:1/-1}
+ .result{grid-column:1/-1}
+ .stats{grid-column:1/-1}
+ .chart-panel{grid-column:1/-1}
+ .compare-panel{grid-column:1/-1}
+ .fields{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .field-group.full{grid-column:span 2}
+ .note{grid-column:1/-1}
+}
+@media(max-width:420px){
+ .app{width:calc(100% - 20px);padding-top:10px}
+ .topbar{padding:10px 11px;border-radius:18px}
+ .brand-mark{width:38px;height:38px}
+ .brand-name{font-size:14px}
+ .brand-sub{font-size:9px}
+ .setup{padding:16px}
+ .fields{grid-template-columns:1fr}
+ .field-group.full,.note{grid-column:1}
+ .result{padding:19px}
+ .stats{gap:7px}
+ .stat{padding:12px 9px;border-radius:15px}
+ .stat-label{font-size:8px;letter-spacing:.08em}
+ .stat-value{font-size:12px}
+ .chart-panel,.compare-panel{padding:16px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div><div class="bg-orb orb3"></div>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 5-5 4 3 5-7 4 4"/><path d="M21 3v6h-6"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Compound<span>Lab</span> <span style="color:#8d78d9">V2</span></div>
+        <div class="brand-sub">DAILY COMPOUNDING ENGINE</div>
+      </div>
+    </div>
+    <div class="select-wrap">
+      <select id="currency" class="currency" aria-label="Display currency">
+        <option value="INR">₹ INR</option><option value="USD">$ USD</option><option value="EUR">€ EUR</option>
+        <option value="GBP">£ GBP</option><option value="AED">د.إ AED</option><option value="JPY">¥ JPY</option>
+      </select>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel setup">
+      <div class="panel-head"><h2 class="section-title">Your Setup</h2><button id="reset" class="reset" type="button">↺ Reset</button></div>
+      <div class="fields">
+        <div class="field-group">
+          <label class="field-label" for="principal">Initial principal</label>
+          <div class="input-wrap"><span class="prefix currency-symbol">₹</span><input id="principal" class="field with-prefix" type="number" min="0" step="any" inputmode="decimal" value="" placeholder="Enter principal"></div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="rate">Daily interest rate <span id="rateHint" class="hint">12.77% effective / yr</span></label>
+          <div class="input-wrap"><input id="rate" class="field with-suffix" type="number" min="0" max="100" step="any" inputmode="decimal" value="" placeholder="Enter rate"><span class="suffix">% / day</span></div>
+        </div>
+        <div class="field-group full">
+          <div class="field-label">Solve for</div>
+          <div class="segment" role="group" aria-label="Calculation mode">
+            <button id="modeDuration" class="active" type="button" aria-pressed="true">I know days</button>
+            <button id="modeGoal" type="button" aria-pressed="false">I know goal</button>
+          </div>
+        </div>
+        <div class="field-group" id="daysGroup">
+          <label class="field-label" for="days">Duration</label>
+          <div class="input-wrap"><input id="days" class="field with-suffix" type="number" min="0" max="36500" step="1" inputmode="numeric" value="" placeholder="Enter days"><span class="suffix">days</span></div>
+        </div>
+        <div class="field-group hidden" id="targetGroup">
+          <label class="field-label" for="target">Goal amount</label>
+          <div class="input-wrap"><span class="prefix currency-symbol">₹</span><input id="target" class="field with-prefix" type="number" min="0" step="any" inputmode="decimal" value="" placeholder="Enter goal amount"></div>
+        </div>
+        <p class="note">Daily compounding · One initial deposit only · No monthly or recurring contributions. Values are estimates, not a guaranteed return.</p>
+      </div>
+      <div id="error" class="error" role="alert"></div>
+    </section>
+
+    <section class="panel result" aria-live="polite">
+      <div class="result-content">
+        <div class="result-top"><div id="resultLabel" class="result-label">Total capital</div><div id="growthBadge" class="growth-badge">+0.0%</div></div>
+        <div id="heroValue" class="hero-value">—</div>
+        <p id="heroSub" class="hero-sub">Enter your values to see the projection.</p>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="Calculation summary">
+      <div class="stat"><div class="stat-label">Invested</div><div id="investedValue" class="stat-value">—</div></div>
+      <div class="stat"><div class="stat-label">Interest</div><div id="interestValue" class="stat-value">—</div></div>
+      <div class="stat"><div class="stat-label">Effective APR</div><div id="earValue" class="stat-value">—</div></div>
+    </section>
+
+    <section class="panel chart-panel">
+      <div class="panel-title-row"><h3 class="eyebrow">Growth projection</h3><div class="legend"><i></i> Balance</div></div>
+      <div class="chart-wrap"><svg id="chart" viewBox="0 0 600 160" preserveAspectRatio="none" role="img" aria-label="Projected balance growth chart">
+        <defs><linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".28"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient><linearGradient id="lineFill" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#13b7c9"/><stop offset="55%" stop-color="#8056e9"/><stop offset="100%" stop-color="#d45bc4"/></linearGradient></defs>
+        <g id="gridLines" stroke="#dcd9ed" stroke-width="1" stroke-dasharray="3 7"></g><path id="areaPath" fill="url(#areaFill)"></path><path id="linePath" fill="none" stroke="url(#lineFill)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+      </svg></div>
+      <div class="chart-labels"><span id="chartStart">Day 0</span><span id="chartEnd">Day 3,650</span></div>
+    </section>
+
+    <section class="panel compare-panel">
+      <div class="panel-title-row"><h3 class="eyebrow">Compare compounding frequency</h3><span class="eyebrow" style="letter-spacing:0">Same rate basis</span></div>
+      <div class="compare-grid" id="compareGrid">
+        <div class="compare-card active" data-frequency="daily"><div class="compare-name">Daily</div><div class="compare-value">—</div><div class="compare-detail">Compounded every day</div></div>
+        <div class="compare-card" data-frequency="weekly"><div class="compare-name">Weekly</div><div class="compare-value">—</div><div class="compare-detail">5 earning days / 7 calendar days</div></div>
+        <div class="compare-card" data-frequency="monthly"><div class="compare-name">Monthly</div><div class="compare-value">—</div><div class="compare-detail">Approx. 30.42-day period</div></div>
+        <div class="compare-card" data-frequency="halfYearly"><div class="compare-name">Half-yearly</div><div class="compare-value">—</div><div class="compare-detail">Approx. 182.5-day period</div></div>
+        <div class="compare-card" data-frequency="yearly"><div class="compare-name">Yearly</div><div class="compare-value">—</div><div class="compare-detail">365-day period</div></div>
+      </div>
+      <p class="assumption">Comparison assumption: the entered daily rate is treated as a simple accrual rate between compounding dates. Weekly periods accrue interest for 5 working days; other periods accrue for their full period length. Fractional final periods are prorated. This is a mathematical comparison, not a lending or investment quote.</p>
+    </section>
+    <p class="footer">COMPOUND LAB · Estimates only · No recurring deposits</p>
+  </main>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const CURRENCIES = {
+    INR:{symbol:"₹",locale:"en-IN",code:"INR"},
+    USD:{symbol:"$",locale:"en-US",code:"USD"},
+    EUR:{symbol:"€",locale:"de-DE",code:"EUR"},
+    GBP:{symbol:"£",locale:"en-GB",code:"GBP"},
+    AED:{symbol:"د.إ",locale:"en-AE",code:"AED"},
+    JPY:{symbol:"¥",locale:"ja-JP",code:"JPY"}
+  };
+  const $ = id => document.getElementById(id);
+  const state = {currency:"INR",mode:"duration"};
+  const input = {principal:$("principal"),rate:$("rate"),days:$("days"),target:$("target")};
+  const MAX_DAYS = 36500;
+  const MAX_RATE_PERCENT = 100;
+  const MAX_DISPLAY = Number.MAX_VALUE;
+  const frequencies = [
+    {key:"daily",period:1,earningDays:1},
+    {key:"weekly",period:7,earningDays:5},
+    {key:"monthly",period:365/12,earningDays:365/12},
+    {key:"halfYearly",period:365/2,earningDays:365/2},
+    {key:"yearly",period:365,earningDays:365}
+  ];
+  let renderFrame = 0;
+
+  function readNumber(node) {
+    if (node.value.trim() === "") return NaN;
+    const n = Number(node.value);
+    return Number.isFinite(n) ? n : NaN;
+  }
+  function fmt(value, compact=false) {
+    if (!Number.isFinite(value)) return "—";
+    const c = CURRENCIES[state.currency];
+    const safe = Math.max(0,value);
+    try {
+      return new Intl.NumberFormat(c.locale,{
+        style:"currency",currency:c.code,
+        maximumFractionDigits: compact ? 1 : (state.currency==="JPY" ? 0 : 2),
+        notation:compact ? "compact" : "standard",
+        compactDisplay:"short"
+      }).format(safe);
+    } catch (_) {
+      return c.symbol + safe.toLocaleString(c.locale,{maximumFractionDigits:compact?1:2});
+    }
+  }
+  function fmtMoney(value, maxChars=18) {
+    const full=fmt(value);
+    return full.length>maxChars ? fmt(value,true) : full;
+  }
+  function fmtDays(days) {
+    if (!Number.isFinite(days)) return "Not reachable";
+    if (days<=0) return "0 days";
+    const d=Math.ceil(days-1e-12);
+    return d.toLocaleString("en-IN")+" day"+(d===1?"":"s");
+  }
+  function effectiveAnnual(dailyRate) {
+    if (dailyRate===0) return 0;
+    const logGrowth=365*Math.log1p(dailyRate);
+    return logGrowth>709 ? Infinity : Math.expm1(logGrowth);
+  }
+  function compound(principal,dailyRate,days) {
+    if (principal===0 || days===0 || dailyRate===0) return principal;
+    const logValue=Math.log(principal)+days*Math.log1p(dailyRate);
+    if (logValue>709) return Infinity;
+    if (logValue < -745) return 0;
+    return Math.exp(logValue);
+  }
+  function daysToGoal(principal,dailyRate,target) {
+    if (target<=principal) return 0;
+    if (principal<=0 || dailyRate<=0) return Infinity;
+    return (Math.log(target)-Math.log(principal))/Math.log1p(dailyRate);
+  }
+  function validate() {
+    const p=readNumber(input.principal), rp=readNumber(input.rate);
+    const d=readNumber(input.days), t=readNumber(input.target);
+    if (input.principal.value.trim()==="" || input.rate.value.trim()==="") return "Enter the principal and daily interest rate to calculate.";
+    if (![p,rp].every(Number.isFinite)) return "Enter valid numbers for principal and daily rate.";
+    if (state.mode==="duration" && input.days.value.trim()==="") return "Enter the duration in days.";
+    if (state.mode==="goal" && input.target.value.trim()==="") return "Enter your goal amount.";
+    if (p<0 || rp<0) return "Principal and interest rate cannot be negative.";
+    if (rp>MAX_RATE_PERCENT) return "Daily rate must be 100% or less for this calculator.";
+    if (state.mode==="duration" && (!Number.isFinite(d)||d<0||d>MAX_DAYS)) return "Duration must be between 0 and 36,500 days.";
+    if (state.mode==="goal" && (!Number.isFinite(t)||t<0)) return "Enter a valid goal amount (zero or greater).";
+    if (state.mode==="goal" && p===0 && t>0) return "A zero principal cannot grow to a positive goal.";
+    return "";
+  }
+  function updateMode() {
+    const goal=state.mode==="goal";
+    $("daysGroup").classList.toggle("hidden",goal);
+    $("targetGroup").classList.toggle("hidden",!goal);
+    $("modeDuration").classList.toggle("active",!goal);
+    $("modeGoal").classList.toggle("active",goal);
+    $("modeDuration").setAttribute("aria-pressed",String(!goal));
+    $("modeGoal").setAttribute("aria-pressed",String(goal));
+  }
+  function updateCurrency() {
+    const symbol=CURRENCIES[state.currency].symbol;
+    document.querySelectorAll(".currency-symbol").forEach(n=>n.textContent=symbol);
+  }
+  function drawChart(principal,rate,days) {
+    const W=600,H=160,top=8,bottom=145;
+    if (!Number.isFinite(days)||days<=0||principal<=0) {
+      $("linePath").setAttribute("d","");
+      $("areaPath").setAttribute("d","");
+      $("gridLines").innerHTML="";
+      $("chartStart").textContent="Day 0";
+      $("chartEnd").textContent="No growth period";
+      return;
+    }
+    const end=Math.min(days,MAX_DAYS);
+    const count=Math.max(2,Math.min(100,Math.ceil(end/Math.max(1,end/80))+1));
+    const vals=[];
+    for(let i=0;i<count;i++) vals.push(compound(principal,rate,end*i/(count-1)));
+    const finiteVals=vals.filter(Number.isFinite);
+    const max=finiteVals.length?Math.max(...finiteVals):principal;
+    const logMax=Math.log(Math.max(max,principal,1));
+    const yFor=v=>{
+      if(!Number.isFinite(v)) return top;
+      const logV=Math.log(Math.max(v,1e-300));
+      const ratio=logMax===0?0:Math.max(0,Math.min(1,logV/logMax));
+      return bottom-ratio*(bottom-top);
+    };
+    let line="";
+    vals.forEach((v,i)=>{
+      const x=i/(count-1)*W,y=yFor(v);
+      line+=(i===0?"M":"L")+x.toFixed(2)+","+y.toFixed(2)+" ";
+    });
+    $("linePath").setAttribute("d",line.trim());
+    $("areaPath").setAttribute("d",line+`L${W},${H} L0,${H} Z`);
+    $("gridLines").innerHTML=[.25,.5,.75,1].map(v=>`<line x1="0" y1="${(bottom-v*(bottom-top)).toFixed(1)}" x2="${W}" y2="${(bottom-v*(bottom-top)).toFixed(1)}"/>`).join("");
+    $("chartStart").textContent="Day 0";
+    $("chartEnd").textContent="Day "+Math.ceil(end).toLocaleString("en-IN");
+  }
+  function frequencyFinal(p,r,calendarDays,f) {
+    if (p===0||calendarDays===0||r===0) return p;
+    // Simple interest accrues between compounding dates; each completed/fractional
+    // period compounds its accrued interest. Weekly earning days are 5 per 7.
+    const periods=calendarDays/f.period;
+    const periodRate=r*f.earningDays;
+    const logFactor=Math.log1p(periodRate);
+    const logValue=Math.log(p)+periods*logFactor;
+    return logValue>709?Infinity:Math.exp(logValue);
+  }
+  function frequencyDays(p,r,target,f) {
+    if(target<=p) return 0;
+    if(p<=0||r<=0) return Infinity;
+    const periodRate=r*f.earningDays;
+    if(periodRate<=0) return Infinity;
+    const periods=(Math.log(target)-Math.log(p))/Math.log1p(periodRate);
+    return periods*f.period;
+  }
+  function renderCompare(p,r,days,target) {
+    document.querySelectorAll(".compare-card").forEach(card=>{
+      const f=frequencies.find(x=>x.key===card.dataset.frequency);
+      if(!f)return;
+      const value=state.mode==="duration"
+        ? fmtMoney(frequencyFinal(p,r,days,f),19)
+        : fmtDays(frequencyDays(p,r,target,f));
+      card.querySelector(".compare-value").textContent=value;
+      card.classList.toggle("active",f.key==="daily");
+    });
+  }
+  function render() {
+    updateMode();
+    const error=validate();
+    $("error").textContent=error;
+    $("error").classList.toggle("show",!!error);
+    if(error) {
+      $("heroValue").textContent="—";
+      $("heroSub").textContent="Please correct the highlighted inputs.";
+      $("growthBadge").textContent="Check inputs";
+      $("investedValue").textContent="—";
+      $("interestValue").textContent="—";
+      $("earValue").textContent="—";
+      document.querySelectorAll(".compare-value").forEach(n=>n.textContent="—");
+      $("linePath").setAttribute("d","");
+      $("areaPath").setAttribute("d","");
+      return;
+    }
+    const p=readNumber(input.principal);
+    const r=readNumber(input.rate)/100;
+    const days=state.mode==="duration"?Math.floor(readNumber(input.days)):0;
+    const target=state.mode==="goal"?readNumber(input.target):0;
+    const ear=effectiveAnnual(r);
+    $("rateHint").textContent=Number.isFinite(ear)?(ear*100).toLocaleString("en-IN",{maximumFractionDigits:2})+"% effective / yr":"Very high rate";
+    $("investedValue").textContent=fmtMoney(p,15);
+    $("investedValue").title=fmt(p);
+    $("earValue").textContent=Number.isFinite(ear)?(ear*100).toLocaleString("en-IN",{maximumFractionDigits:2})+"%":"—";
+
+    let final,interest,chartDays;
+    if(state.mode==="duration") {
+      final=compound(p,r,days);
+      interest=final-p;
+      chartDays=days;
+      $("resultLabel").textContent="Total capital";
+      $("heroValue").textContent=fmtMoney(final,24);
+      $("heroSub").textContent=`After ${days.toLocaleString("en-IN")} days · daily compounding`;
+    } else {
+      const needed=daysToGoal(p,r,target);
+      final=Math.max(p,target);
+      interest=final-p;
+      chartDays=Number.isFinite(needed)?Math.min(Math.ceil(needed),MAX_DAYS):0;
+      $("resultLabel").textContent="Time to goal";
+      $("heroValue").textContent=fmtDays(needed);
+      $("heroSub").textContent=`To reach ${fmtMoney(target,20)} · daily compounding`;
+    }
+    $("interestValue").textContent=Number.isFinite(interest)?fmtMoney(interest,15):"—";
+    $("interestValue").title=Number.isFinite(interest)?fmt(interest):"Value exceeds numeric range";
+    const growth=p>0?(final/p-1)*100:(final>0?Infinity:0);
+    $("growthBadge").textContent=Number.isFinite(growth)?(growth>=0?"+":"")+growth.toLocaleString("en-IN",{maximumFractionDigits:1})+"%":(growth===Infinity?"+∞%":"—");
+    $("growthBadge").style.background=growth>=0?"#e9f9f2":"#fff0f1";
+    $("growthBadge").style.color=growth>=0?"#16875c":"#b43b50";
+    $("growthBadge").style.borderColor=growth>=0?"#ccefe0":"#f4d1d6";
+    drawChart(p,r,chartDays);
+    renderCompare(p,r,days,target);
+  }
+  function scheduleRender() {
+    if(renderFrame) cancelAnimationFrame(renderFrame);
+    renderFrame=requestAnimationFrame(()=>{renderFrame=0;render();});
+  }
+  $("modeDuration").addEventListener("click",()=>{state.mode="duration";scheduleRender();});
+  $("modeGoal").addEventListener("click",()=>{state.mode="goal";scheduleRender();});
+  Object.values(input).forEach(node=>{
+    node.addEventListener("input",scheduleRender);
+    node.addEventListener("change",()=>{
+      if(node.value.trim()==="") return;
+      const n=Number(node.value);
+      if(Number.isFinite(n)&&n<0) node.value="0";
+      if(node===input.days&&Number.isFinite(n)) node.value=String(Math.min(MAX_DAYS,Math.floor(Math.max(0,n))));
+      scheduleRender();
+    });
+  });
+  $("currency").addEventListener("change",e=>{state.currency=e.target.value;updateCurrency();scheduleRender();});
+  $("reset").addEventListener("click",()=>{
+    input.principal.value="";input.rate.value="";input.days.value="";input.target.value="";
+    state.mode="duration";$("currency").value="INR";state.currency="INR";updateCurrency();scheduleRender();
+  });
+  updateCurrency();
+  render();
+})();
+</script>
+</body>
+</html>
