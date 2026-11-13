@@ -203,13 +203,13 @@ h2,h3,p{margin:0}
     </section>
 
     <section class="panel compare-panel">
-      <div class="panel-title-row"><h3 class="eyebrow">Compare compounding frequency</h3><span class="eyebrow" style="letter-spacing:0">Same rate basis</span></div>
+      <div class="panel-title-row"><h3 class="eyebrow">Period-wise amount (earning days)</h3><span class="eyebrow" style="letter-spacing:0">Based on earning days</span></div>
       <div class="compare-grid" id="compareGrid">
-        <div class="compare-card active" data-frequency="daily"><div class="compare-name">Daily</div><div class="compare-value">—</div><div class="compare-detail">Compounded every day</div></div>
-        <div class="compare-card" data-frequency="weekly"><div class="compare-name">Weekly</div><div class="compare-value">—</div><div class="compare-detail">5 earning days / 7 calendar days</div></div>
-        <div class="compare-card" data-frequency="monthly"><div class="compare-name">Monthly</div><div class="compare-value">—</div><div class="compare-detail">Approx. 30.42-day period</div></div>
-        <div class="compare-card" data-frequency="halfYearly"><div class="compare-name">Half-yearly</div><div class="compare-value">—</div><div class="compare-detail">Approx. 182.5-day period</div></div>
-        <div class="compare-card" data-frequency="yearly"><div class="compare-name">Yearly</div><div class="compare-value">—</div><div class="compare-detail">365-day period</div></div>
+        <div class="compare-card active" data-frequency="daily"><div class="compare-name">Daily</div><div class="compare-value">—</div><div class="compare-detail">1 earning day</div></div>
+        <div class="compare-card" data-frequency="weekly"><div class="compare-name">Weekly</div><div class="compare-value">—</div><div class="compare-detail">5 earning days</div></div>
+        <div class="compare-card" data-frequency="monthly"><div class="compare-name">Monthly</div><div class="compare-value">—</div><div class="compare-detail">21 earning days</div></div>
+        <div class="compare-card" data-frequency="halfYearly"><div class="compare-name">Half-yearly</div><div class="compare-value">—</div><div class="compare-detail">126 earning days</div></div>
+        <div class="compare-card" data-frequency="yearly"><div class="compare-name">Yearly</div><div class="compare-value">—</div><div class="compare-detail">252 earning days</div></div>
       </div>
       <p class="assumption">Comparison assumption: the entered daily rate is treated as a simple accrual rate between compounding dates. Weekly periods accrue interest for 5 working days; other periods accrue for their full period length. Fractional final periods are prorated. This is a mathematical comparison, not a lending or investment quote.</p>
     </section>
@@ -234,14 +234,14 @@ h2,h3,p{margin:0}
   const MAX_DAYS = 36500;
   const MAX_RATE_PERCENT = 100;
   const MAX_DISPLAY = Number.MAX_VALUE;
+  // Period amounts use the user's earning-day calendar.
   const frequencies = [
-    {key:"daily",period:1,earningDays:1},
-    {key:"weekly",period:7,earningDays:5},
-    {key:"monthly",period:365/12,earningDays:365/12},
-    {key:"halfYearly",period:365/2,earningDays:365/2},
-    {key:"yearly",period:365,earningDays:365}
-  ];
-  let renderFrame = 0;
+    {key:"daily",earningDays:1},
+    {key:"weekly",earningDays:5},
+    {key:"monthly",earningDays:21},
+    {key:"halfYearly",earningDays:126},
+    {key:"yearly",earningDays:252}
+  ];  let renderFrame = 0;
 
   function readNumber(node) {
     if (node.value.trim() === "") return NaN;
@@ -351,30 +351,22 @@ h2,h3,p{margin:0}
     $("chartStart").textContent="Day 0";
     $("chartEnd").textContent="Day "+Math.ceil(end).toLocaleString("en-IN");
   }
-  function frequencyFinal(p,r,calendarDays,f) {
-    if (p===0||calendarDays===0||r===0) return p;
-    // Simple interest accrues between compounding dates; each completed/fractional
-    // period compounds its accrued interest. Weekly earning days are 5 per 7.
-    const periods=calendarDays/f.period;
-    const periodRate=r*f.earningDays;
-    const logFactor=Math.log1p(periodRate);
-    const logValue=Math.log(p)+periods*logFactor;
-    return logValue>709?Infinity:Math.exp(logValue);
+  function frequencyFinal(p,r,earningDays) {
+    // Daily rate compounds once for each earning day in the selected period.
+    return compound(p,r,earningDays);
   }
   function frequencyDays(p,r,target,f) {
     if(target<=p) return 0;
     if(p<=0||r<=0) return Infinity;
-    const periodRate=r*f.earningDays;
-    if(periodRate<=0) return Infinity;
-    const periods=(Math.log(target)-Math.log(p))/Math.log1p(periodRate);
-    return periods*f.period;
+    // Show the number of earning days needed to reach the goal.
+    return daysToGoal(p,r,target);
   }
   function renderCompare(p,r,days,target) {
     document.querySelectorAll(".compare-card").forEach(card=>{
       const f=frequencies.find(x=>x.key===card.dataset.frequency);
       if(!f)return;
       const value=state.mode==="duration"
-        ? fmtMoney(frequencyFinal(p,r,days,f),19)
+        ? fmtMoney(frequencyFinal(p,r,f.earningDays),19)
         : fmtDays(frequencyDays(p,r,target,f));
       card.querySelector(".compare-value").textContent=value;
       card.classList.toggle("active",f.key==="daily");
